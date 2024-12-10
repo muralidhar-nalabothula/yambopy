@@ -89,7 +89,7 @@ class YamboExcitonDB(object):
     def from_db_file(cls,lattice,filename='ndb.BS_diago_Q1',folder='.',neigs=-1):
         """ initialize this class from a file
         """
-        " if neigs = -1, all eigenvectors/eigenvalues are read
+        #if neigs = -1, all eigenvectors/eigenvalues are read
 
         path_filename = os.path.join(folder,filename)
         if not os.path.isfile(path_filename):
