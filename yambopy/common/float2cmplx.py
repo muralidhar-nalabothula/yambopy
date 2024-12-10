@@ -10,7 +10,7 @@ def float2Cmplex(arr):
         printf("Last dimention of float array must be 2 for complex view")
         exit()
     # // Check if the last dimension is contiguous
-    if not arr[...,:].data.contiguous:
+    if not arr[...,:].flags['C_CONTIGUOUS']:
         return arr[...,0] + 1j*arr[...,1]
     else :
         if arr.dtype == np.float64: return arr.view(np.complex128)[...,0]
