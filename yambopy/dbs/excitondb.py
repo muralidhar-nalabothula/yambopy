@@ -235,7 +235,7 @@ class YamboExcitonDB(object):
         Convert eigenvectors from (neigs,BS_table) -> (neigs,k,c,v)
         For now, only works for nspin = 1, nspinor = 1/2 also works.
         """
-        #assert self.spin_pol != 'no', "Rearrange_Akcv works only for nspin = 1"
+        assert self.spin_pol == 'no', "Rearrange_Akcv works only for nspin = 1"
         #
         if self.eigenvectors is None: return None
         eig_wfcs = self.eigenvectors
@@ -244,7 +244,8 @@ class YamboExcitonDB(object):
         nv = self.nvbands
         nc = self.ncbands
         # Make sure nc * nv * nk = BS_TABLE length
-        assert nk*nv*nc == self.table.shape[0], "BS_TABLE length not equal to nc * nv * nk"
+        table_len = nk*nv*nc
+        assert table_len == self.table.shape[0], "BS_TABLE length not equal to nc * nv * nk"
         #
         v_min = np.min(self.table[:,1]) 
         c_min = np.min(self.table[:,2])
@@ -256,8 +257,13 @@ class YamboExcitonDB(object):
         #
         sort_idx = bs_table0*nc*nv + bs_table2*nv + bs_table1 
         #
-        eig_wfcs_returned[:,sort_idx] = eig_wfcs[...]
-        eig_wfcs_returned.reshape(-1,nk,nc,nv)
+        # check if this is coupling .
+        eig_wfcs_returned[:,sort_idx] = eig_wfcs[...,:table_len]
+        if eig_wfcs.shape[-1]//table_len == 2:
+            eig_wfcs_returned[:,sort_idx+table_len] = eig_wfcs[...,table_len:]
+            eig_wfcs_returned = eig_wfcs_returned.reshape(-1,2,nk,nc,nv)
+        else :
+            eig_wfcs_returned = eig_wfcs_returned.reshape(-1,nk,nc,nv)
         return eig_wfcs_returned
 
 
