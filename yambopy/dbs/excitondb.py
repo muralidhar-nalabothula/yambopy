@@ -23,6 +23,7 @@ from yambopy.tools.skw import SkwInterpolator
 from yambopy.dbs.latticedb import YamboLatticeDB
 from yambopy.dbs.electronsdb import YamboElectronsDB
 from yambopy.dbs.qpdb import YamboQPDB
+from yambopy.common.float2cmplx import float2Cmplex
 
 class ExcitonList():
     """
@@ -66,7 +67,9 @@ class YamboExcitonDB(object):
         Exciton eigenvectors are arranged as eigenvectors[i_exc, i_kvc]
         Transitions are unpacked in table[ i_k, i_v, i_c, i_s_c, i_s_v ] (last two are spin indices)
     """
-    def __init__(self,lattice,Qpt,eigenvalues,l_residual,r_residual,spin_pol='no',car_qpoint=None,q_cutoff=None,table=None,eigenvectors=None):
+    def __init__(self,lattice,Qpt,eigenvalues,l_residual,r_residual,
+                 spin_pol='no',car_qpoint=None,q_cutoff=None,table=None,eigenvectors=None):
+        #
         if not isinstance(lattice,YamboLatticeDB):
             raise ValueError('Invalid type for lattice argument. It must be YamboLatticeDB')
 
@@ -83,9 +86,11 @@ class YamboExcitonDB(object):
         self.spin_pol = spin_pol
 
     @classmethod
-    def from_db_file(cls,lattice,filename='ndb.BS_diago_Q1',folder='.'):
+    def from_db_file(cls,lattice,filename='ndb.BS_diago_Q1',folder='.',neigs=-1):
         """ initialize this class from a file
         """
+        " if neigs = -1, all eigenvectors/eigenvalues are read
+
         path_filename = os.path.join(folder,filename)
         if not os.path.isfile(path_filename):
             raise FileNotFoundError("File %s not found in YamboExcitonDB"%path_filename)
@@ -94,15 +99,17 @@ class YamboExcitonDB(object):
         Qpt = filename.split("Q",1)[1]
 
         with Dataset(path_filename) as database:
+            #energies
+            eig =  database.variables['BS_Energies'][:]*ha2ev
+            if neigs == -1 or neigs > eig.shape[0]: neigs = eig.shape[0]
+
             if 'BS_left_Residuals' in list(database.variables.keys()):
                 #residuals
-                rel,iml = database.variables['BS_left_Residuals'][:].T
-                rer,imr = database.variables['BS_right_Residuals'][:].T
-                l_residual = rel+iml*I
-                r_residual = rer+imr*I
+                l_residual = float2Cmplex(database.variables['BS_left_Residuals'][:neigs,...])
+                r_residual = float2Cmplex(database.variables['BS_right_Residuals'][:neigs,...])
             if 'BS_Residuals' in list(database.variables.keys()):
                 #residuals
-                rel,iml,rer,imr = database.variables['BS_Residuals'][:].T
+                rel,iml,rer,imr = database.variables['BS_Residuals'][:neigs,...].T
                 l_residual = rel+iml*I
                 r_residual = rer+imr*I
 
@@ -113,27 +120,26 @@ class YamboExcitonDB(object):
             if Qpt=="1": car_qpoint = np.zeros(3)
 
             #energies
-            eig =  database.variables['BS_Energies'][:]*ha2ev
-            eigenvalues = eig[:,0]+eig[:,1]*I
-                
+            eigenvalues = eig[:neigs,0]+eig[:neigs,1]*I
+
             #eigenvectors
             table = None
             eigenvectors = None
             if 'BS_EIGENSTATES' in database.variables:
-                eiv = database.variables['BS_EIGENSTATES'][:]
-                eiv = eiv[:,:,0] + eiv[:,:,1]*I
+                eiv = float2Cmplex(database.variables['BS_EIGENSTATES'][:neigs,...])
                 eigenvectors = eiv
                 table = database.variables['BS_TABLE'][:].T.astype(int)
 
             table = table
             eigenvectors = eigenvectors
-            spin_vars = [int(database.variables['SPIN_VARS'][:][0]), int(database.variables['SPIN_VARS'][:][1])]
+            spin_vars = [int(database.variables['SPIN_VARS'][:][0]), \
+                         int(database.variables['SPIN_VARS'][:][1])]
             if spin_vars[0] == 2 and spin_vars[1] == 1:
                spin_pol = 'pol'
             else:
                spin_pol = 'no'
         # Check if Coulomb cutoff is present
-        path_cutoff = os.path.join(path_filename.split('ndb',1)[0],'ndb.cutoff')  
+        path_cutoff = os.path.join(path_filename.split('ndb',1)[0],'ndb.cutoff')
         q_cutoff = None
         if os.path.isfile(path_cutoff):
             with Dataset(path_cutoff) as database:
@@ -141,7 +147,9 @@ class YamboExcitonDB(object):
                 bare_qpg = bare_qpg[:,:,0]+bare_qpg[:,:,1]*I
                 q_cutoff = np.abs(bare_qpg[0,int(Qpt)-1])
 
-        return cls(lattice,Qpt,eigenvalues,l_residual,r_residual,spin_pol,q_cutoff=q_cutoff,car_qpoint=car_qpoint,table=table,eigenvectors=eigenvectors)
+        return cls(lattice,Qpt,eigenvalues,l_residual,r_residual,
+                   spin_pol,q_cutoff=q_cutoff,car_qpoint=car_qpoint,
+                   table=table,eigenvectors=eigenvectors)
 
     @property
     def unique_vbands(self):
@@ -222,6 +230,32 @@ class YamboExcitonDB(object):
             for i,n in sort_i:
                 f.write("%3d %12.8lf %12.8e\n"%(n+1,eig[n],i)) 
 
+    def get_rearranged_Akcv(self):
+        """
+        Convert eigenvectors from (neigs,BS_table) -> (neigs,k,c,v)
+        For now, only works for nspin = 1, nspinor = 1/2 also works.
+        """
+        assert self.nspin == 1, "Rearrange_Akcv works only for nspin = 1"
+        #
+        if self.eigenvectors is None: return None
+        eig_wfcs = self.eigenvectors
+        #
+        nk = self.nkpoints
+        nv = self.nvbands
+        nc = self.ncbands
+        v_min = np.min(self.table[:,1]) 
+        c_min = np.min(self.table[:,2])
+        bs_table0 = self.table[:,0]-1
+        bs_table1 = self.table[:,1] - v_min
+        bs_table2 = self.table[:,2] - c_min 
+        eig_wfcs_returned = np.zeros(eig_wfcs.shape,dtype=eig_wfcs.dtype) 
+        sort_idx = bs_table0*nc*nv + bs_table2*nv + bs_table1 
+        eig_wfcs_returned[:,sort_idx] = eig_wfcs[...]
+        eig_wfcs_returned.reshape(neig,nk,nc,nv)
+        return eig_wfcs_returned
+
+
+
     def get_nondegenerate(self,eps=1e-4):
         """
         get a list of non-degenerate excitons
@@ -283,11 +317,13 @@ class YamboExcitonDB(object):
             energies -> can be an instance of YamboElectronsDB or YamboQPDB
             path     -> Path object in reduced coordinates to use for plotting the band structure
             exciton  -> exciton index to plot
-            spin     -> So far only spin_pol='no' (or spin-up only) is implemented. Can be extended to spin_pol='pol' (spin-polarized)
+            spin     -> So far only spin_pol='no' (or spin-up only) is implemented. 
+                        Can be extended to spin_pol='pol' (spin-polarized)
         """
         if self.eigenvectors is None:
             raise ValueError('This database does not contain Excitonic states,'
-                              'please re-run the yambo BSE calculation with the WRbsWF option in the input file.')
+                              'please re-run the yambo BSE calculation with the '
+                             + 'WRbsWF option in the input file.')
         if isinstance(excitons, int):
             excitons = (excitons,)
 
