@@ -243,15 +243,21 @@ class YamboExcitonDB(object):
         nk = self.nkpoints
         nv = self.nvbands
         nc = self.ncbands
+        # Make sure nc * nv * nk = BS_TABLE length
+        assert nk*nv*nc == self.table.shape[0], "BS_TABLE length not equal to nc * nv * nk"
+        #
         v_min = np.min(self.table[:,1]) 
         c_min = np.min(self.table[:,2])
         bs_table0 = self.table[:,0]-1
         bs_table1 = self.table[:,1] - v_min
         bs_table2 = self.table[:,2] - c_min 
+        #
         eig_wfcs_returned = np.zeros(eig_wfcs.shape,dtype=eig_wfcs.dtype) 
+        #
         sort_idx = bs_table0*nc*nv + bs_table2*nv + bs_table1 
+        #
         eig_wfcs_returned[:,sort_idx] = eig_wfcs[...]
-        eig_wfcs_returned.reshape(neig,nk,nc,nv)
+        eig_wfcs_returned.reshape(-1,nk,nc,nv)
         return eig_wfcs_returned
 
 
