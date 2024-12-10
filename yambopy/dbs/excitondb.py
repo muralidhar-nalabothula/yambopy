@@ -235,7 +235,7 @@ class YamboExcitonDB(object):
         Convert eigenvectors from (neigs,BS_table) -> (neigs,k,c,v)
         For now, only works for nspin = 1, nspinor = 1/2 also works.
         """
-        assert self.nspin == 1, "Rearrange_Akcv works only for nspin = 1"
+        assert self.spin_pol != 'no', "Rearrange_Akcv works only for nspin = 1"
         #
         if self.eigenvectors is None: return None
         eig_wfcs = self.eigenvectors
