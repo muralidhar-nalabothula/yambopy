@@ -2,12 +2,13 @@ import numpy as np
 from netCDF4 import Dataset
 from yambopy.tools.string import marquee
 from yambopy.units import ha2ev
+from yambopy.common.float2cmplx import float2Cmplex
 
 class LetzElphElectronPhononDB():
     """
     Python class to read the electron-phonon matrix elements from LetzElPhC.
 
-    About LetzElPhC: https://github.com/muralidhar-nalabothula/LetzElPhC
+    About LetzElPhC: https://github.com/yambo-code/LetzElPhC
     
     By default it reads the full database g(k,q,m,s,b1,b2) including phonon energies.
     
@@ -90,17 +91,15 @@ class LetzElphElectronPhononDB():
         self.ph_eigenvectors = np.zeros([self.nq,self.nm,self.nat,3],dtype=np.complex64)
         #eivs_tmp[qpt][mode][atom][coord][cmplx]
         eivs_tmp = database.variables['POLARIZATION_VECTORS'][:]
-        self.ph_eigenvectors = eivs_tmp[:,:,:,:,0] + 1j*eivs_tmp[:,:,:,:,1]
+        self.ph_eigenvectors = float2Cmplex(eivs_tmp)
 
     def read_elph(self,database,scale_g_with_ph_energies=True):
         """
         Read electron-phonon matrix elements
         
         - If scale_g_with_ph_energies they are divided by sqrt(2*ph_E)
-        """    
-        gkkp_full = np.zeros([self.nq,self.nk,self.nm,self.ns,self.nb1,self.nb2],dtype=np.complex64)
-        gkkp_tmp  = database.variables['elph_mat'][:]
-        gkkp_full = gkkp_tmp[:,:,:,:,:,:,0]+1j*gkkp_tmp[:,:,:,:,:,:,1]
+        """
+        gkkp_full  = float2Cmplex(database.variables['elph_mat'][:])
         
         # Check integrity of elph values
         if np.isnan(gkkp_full).any(): print('[WARNING] NaN values detected in elph database.')
