@@ -18,13 +18,12 @@ from yambopy.lattice import replicate_red_kmesh, calculate_distances, car_red, r
 from yambopy.kpoints import get_path, get_path_car
 from yambopy.tools.funcs import gaussian, lorentzian, boltzman_f, abs2
 from yambopy.tools.string import marquee
-from yambopy.tools.types import CmplxType
+from yambopy.tools.types import CmplxType, float2Cmplex
 from yambopy.plot.bandstructure import YambopyBandStructure
 from yambopy.tools.skw import SkwInterpolator
 from yambopy.dbs.latticedb import YamboLatticeDB
 from yambopy.dbs.electronsdb import YamboElectronsDB
 from yambopy.dbs.qpdb import YamboQPDB
-from yambopy.common.float2cmplx import float2Cmplex
 
 class ExcitonList():
     """
@@ -116,10 +115,8 @@ class YamboExcitonDB(object):
                 #rer,imr = database.variables['BS_right_Residuals'][:].T
                 #l_residual = rel+iml*I
                 #r_residual = rer+imr*I
-                l_residual = database.variables['BS_left_Residuals'][:]
-                r_residual = database.variables['BS_right_Residuals'][:]
-                l_residual = l_residual.view(dtype=CmplxType(l_residual)).reshape(len(l_residual))
-                r_residual = r_residual.view(dtype=CmplxType(r_residual)).reshape(len(r_residual))
+                l_residual = float2Cmplex(database.variables['BS_left_Residuals'][:])
+                r_residual = float2Cmplex(database.variables['BS_right_Residuals'][:])
             if 'BS_Residuals' in list(database.variables.keys()):
                 # Compatibility with older Yambo versions
                 rel,iml,rer,imr = database.variables['BS_Residuals'][:].T
@@ -143,7 +140,7 @@ class YamboExcitonDB(object):
                 eiv = database.variables['BS_EIGENSTATES'][:]
                 #eiv = eiv[:,:,0] + eiv[:,:,1]*I
                 #eigenvectors = eiv
-                eigenvectors = eiv.view(dtype=CmplxType(eiv)).reshape(eiv.shape[:-1])
+                eigenvectors = float2Cmplex(eiv)
                 table = database.variables['BS_TABLE'][:].T.astype(int)
 
             spin_vars = [int(database.variables['SPIN_VARS'][:][0]), int(database.variables['SPIN_VARS'][:][1])]
@@ -259,6 +256,8 @@ class YamboExcitonDB(object):
         # Make sure nc * nv * nk = BS_TABLE length
         table_len = nk*nv*nc
         assert table_len == self.table.shape[0], "BS_TABLE length not equal to nc * nv * nk"
+
+        assert eig_wfcs.shape[-1]//table_len == 1, "rearranged_Akcv works only in TDA"
         #
         v_min = np.min(self.table[:,1]) 
         c_min = np.min(self.table[:,2])
@@ -270,13 +269,16 @@ class YamboExcitonDB(object):
         #
         sort_idx = bs_table0*nc*nv + bs_table2*nv + bs_table1 
         #
-        # check if this is coupling .
         eig_wfcs_returned[:,sort_idx] = eig_wfcs[...,:table_len]
-        if eig_wfcs.shape[-1]//table_len == 2:
-            eig_wfcs_returned[:,sort_idx+table_len] = eig_wfcs[...,table_len:]
-            eig_wfcs_returned = eig_wfcs_returned.reshape(-1,2,nk,nc,nv)
-        else :
-            eig_wfcs_returned = eig_wfcs_returned.reshape(-1,nk,nc,nv)
+        eig_wfcs_returned = eig_wfcs_returned.reshape(-1,nk,nc,nv)
+        #
+        # check if this is coupling .
+        # if eig_wfcs.shape[-1]//table_len == 2:
+        #     eig_wfcs_returned[:,sort_idx+table_len] = eig_wfcs[...,table_len:]
+        #     eig_wfcs_returned = eig_wfcs_returned.reshape(-1,2,nk,nc,nv)
+        # else :
+        #     eig_wfcs_returned = eig_wfcs_returned.reshape(-1,nk,nc,nv)
+        #
         return eig_wfcs_returned
 
 

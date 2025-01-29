@@ -2,7 +2,7 @@ import numpy as np
 from netCDF4 import Dataset
 from yambopy.tools.string import marquee
 from yambopy.units import ha2ev
-from yambopy.common.float2cmplx import float2Cmplex
+from yambopy.tools.types import float2Cmplex
 
 class LetzElphElectronPhononDB():
     """
@@ -58,6 +58,7 @@ class LetzElphElectronPhononDB():
         self.ph_energies = database.variables['FREQ'][:]*(ha2ev/2.) # Energy units are in Rydberg
         self.check_energies()
 
+        self.filename = filename
         if read_all: 
  
             self.read_eigenmodes(database)
