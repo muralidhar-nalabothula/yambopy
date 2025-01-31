@@ -1,28 +1,37 @@
 ## Contains functions that transfer data to fro to numpy 
 
 import numpy as np
-try:
-    import torch as pt
-    torch_exist = True
-    has_gpu = True
-    gpu_device = pt.device('cuda' if pt.cuda.is_available() else 'cpu')
-except ImportError:
-    import numpy as pt
-    torch_exist = False
-    has_gpu = False
-    gpu_device = 'cpu'
+import torch as pt
 
+## check if any gpu is available 
+## (i) Cuda or HIP
+gpu_device = pt.device('cuda' if pt.cuda.is_available() else 'cpu')
+## (ii) incase of Apple silicon gpu
+if pt.backends.mps.is_available() and pt.backends.mps.is_built():
+    gpu_device = pt.device("mps")
 
-def npy2torch(arr, gpu=True):
+def to_pytorch_tensor(arr, gpu=True):
     ## convert a numpy tensor to pytorch tensor.
     ## if gpu = True, the output will be on gpu (if exists)
-    if torch_exist:
-        if has_gpu and gpu: return pt.from_numpy(arr).to(gpu_device)
+    if type(arr) == list:
+        if gpu : return pt.Tensor(arr).to(gpu_device)
+        else : return pt.Tensor(arr)
+    elif type(arr) == pt.Tensor:
+        if gpu and arr.is_cpu: return arr.to(gpu_device)
+        elif not gpu and not arr.is_cpu: return arr.detach().cpu().numpy()
+        else : return arr
+    else :
+        assert type(arr) == np.ndarray, "Can only pass numpy.ndarray or torch.Tensor or valid list"
+        if gpu: return pt.from_numpy(arr).to(gpu_device)
         else : return pt.from_numpy(arr)
-    else : return arr
 
-def torch2npy(arr):
-    ## convert a numpy tensor to pytorch tensor.
+def to_npy_array(arr):
+    ## convert a pytorch tensor to numpy tensor.
     ## if gpu = True, the output will be on gpu (if exists)
-    if torch_exist: return arr.detach().cpu().numpy()
-    else : return arr
+    if type(arr) == list:
+        return np.array(arr)
+    elif type(arr) == pt.Tensor:
+        return arr.detach().cpu().numpy()
+    else :
+        assert type(arr) == np.ndarray, "Can only pass numpy.ndarray or torch.Tensor or valid list"
+        return arr
