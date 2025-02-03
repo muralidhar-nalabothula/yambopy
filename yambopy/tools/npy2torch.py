@@ -11,7 +11,7 @@ if pt.backends.mps.is_available() and pt.backends.mps.is_built():
     gpu_device = pt.device("mps")
 
 def to_pytorch_tensor(arr, gpu=True):
-    ## convert a numpy tensor to pytorch tensor.
+    ## convert a numpy_array/list/pytorch_tensor to pytorch tensor.
     ## if gpu = True, the output will be on gpu (if exists)
     if type(arr) == list:
         if gpu : return pt.Tensor(arr).to(gpu_device)
@@ -26,7 +26,7 @@ def to_pytorch_tensor(arr, gpu=True):
         else : return pt.from_numpy(arr)
 
 def to_npy_array(arr):
-    ## convert a pytorch tensor to numpy tensor.
+    ## convert a pytorch_tensor/list to numpy tensor.
     ## if gpu = True, the output will be on gpu (if exists)
     if type(arr) == list:
         return np.array(arr)
