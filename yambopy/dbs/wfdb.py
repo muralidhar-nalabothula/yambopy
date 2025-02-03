@@ -159,7 +159,7 @@ class YamboWFDB():
         assert self.nspin == 1, "spin projections is useful only for nspin = 1"
         if self.nspinor == 1:
             return 0
-        else self.nspinor == 2:
+        elif self.nspinor == 2:
             # <psi| S_z | psi>. +1 for spin up and -1 for spin down. Maybe not be welldefined
             # in the precence of strong spin-orbit coupling.
             s_z = np.array([[1,0],[0,-1]])
@@ -167,7 +167,7 @@ class YamboWFDB():
             s_tmp = np.einsum('ij,jg->ig',s_z, wfc_tmp,optimize=True)
             return np.dot(s_tmp.reshape(-1),wfc_tmp.reshape(-1).conj())
         else:
-            print("Invalid nspinor values %d", %(self.nspinor))
+            print("Invalid nspinor values %d" %(self.nspinor))
             exit()
         
 

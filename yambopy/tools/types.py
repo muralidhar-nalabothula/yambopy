@@ -21,7 +21,7 @@ def float2Cmplex(arr):
     ### return a view (not copy) of complex array from float array 
     ### with last dimention == 2
     ### If the last dimension is not contiguous, a copy is created.
-    if arr.shape[-1] == 2, "Last dimention of float array must be 2 for complex view"
+    assert arr.shape[-1] == 2, "Last dimention of float array must be 2 for complex view"
     # // Check if the last dimension is contiguous
     if not arr[...,:].flags['C_CONTIGUOUS']:
         return arr[...,0] + 1j*arr[...,1]
