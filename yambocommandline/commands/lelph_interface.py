@@ -7,7 +7,7 @@ Calculate gauge-invariant electron-phonon matrix elements with LetzElPhC and con
 
 - Usage:
 
->> yambopy l2y -ph phinp -b b1 b2 -par nq nk [--kernel kernel] [--lelphc lelphc] [--debug]
+>> yambopy l2y -ph phinp -b b1 b2 -par nq nk [--kernel kernel] [--lelphc lelphc] [--debug] [--no_gkkp]
 
 - Input parameters:
 	-ph           : path to ph.x input file, e.g. dvscf/ph.in
@@ -165,7 +165,7 @@ if __name__=="__main__":
 	pools  = args.pools
 	lelphc = args.lelphc
 	debug  = args.debug
-    no_gkkp= args.no_gkkp
+	no_gkkp= args.no_gkkp
 
 	# Check inputs
 	lelphc,ph_path,inp_ph,inp_lelphc,inp_name = checks(phinp,lelphc,bands,kernel,pools)
@@ -177,8 +177,8 @@ if __name__=="__main__":
 	run_elph(lelphc,inp_lelphc,inp_name,pools)
 
 	# load database and convert to yambo format
-    if not no_gkkp:
-        letzelph_to_yambo()
+	if not no_gkkp:
+	    letzelph_to_yambo()
 
 	# clean
 	clean_lelphc(debug,inp_name,ph_path)	

@@ -621,6 +621,7 @@ class ConvertLELPHCtoYAMBO(Cmd):
         --kernel [OPT]: e-ph kernel type, default 'dfpt'
         --lelphc [OPT]: path to lelphc executable (code will prompt)
         --debug [OPT] : won't remove LetzElPhC input and outputs
+        --no_gkkp [OPT] : do not generate gkkp dbs
 
 	:: Prerequisites:
 
@@ -646,6 +647,7 @@ class ConvertLELPHCtoYAMBO(Cmd):
 		parser.add_argument('-k','--kernel', type=str, default='dfpt',help="<Optional> Electron-phonon kernel type, e.g. 'dfpt', 'bare', ... (default 'dfpt')")
 		parser.add_argument('-par','--pools',nargs=2,type=str, default=[1,1], help="<Optional> MPI tasks as 'nqpools nkpools' (default serial)")
 		parser.add_argument('-lelphc','--lelphc',type=str,default='lelphc',help="<Optional> Path to lelphc executable (default assumed in Path, otherwise prompted)")
+		parser.add_argument('-ng','--no_gkkp', action="store_true", help="Do not generate gkkp dbs")
 		parser.add_argument('-D','--debug', action="store_true", help="Debug mode")
 
 		args = parser.parse_args(args)
@@ -655,6 +657,7 @@ class ConvertLELPHCtoYAMBO(Cmd):
 		kernel = args.kernel
 		pools  = args.pools
 		lelphc = args.lelphc
+		no_gkkp= args.no_gkkp
 		debug  = args.debug
 
 		# Check inputs
@@ -668,7 +671,8 @@ class ConvertLELPHCtoYAMBO(Cmd):
 		lelph_interface.run_elph(lelphc,inp_lelphc,inp_name)
 
 		# load database and convert to yambo format
-		lelph_interface.letzelph_to_yambo()
+		if not no_gkkp:
+		   lelph_interface.letzelph_to_yambo()
 
 		# clean
 		lelph_interface.clean_lelphc(debug,inp_name,ph_path)
