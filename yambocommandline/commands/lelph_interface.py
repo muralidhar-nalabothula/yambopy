@@ -7,7 +7,7 @@ Calculate gauge-invariant electron-phonon matrix elements with LetzElPhC and con
 
 - Usage:
 
->> yambopy l2y -ph phinp -b b1 b2 -par nq nk [--kernel kernel] [--lelphc lelphc] [--debug]
+>> yambopy l2y -ph phinp -b b1 b2 -par nq nk [--kernel kernel] [--lelphc lelphc] [--debug] [--no_gkkp]
 
 - Input parameters:
 	-ph           : path to ph.x input file, e.g. dvscf/ph.in
@@ -16,6 +16,7 @@ Calculate gauge-invariant electron-phonon matrix elements with LetzElPhC and con
 	--kernel [OPT]: e-ph kernel type, default 'dfpt'
 	--lelphc [OPT]: path to lelphc executable, default 'lelphc', code will prompt
 	--debug [OPT] : won't remove LetzElPhC input and outputs
+    --no_gkkp     : do not generate the gkkp databases for Yambo/Lumen
  
 - Prerequisites:
 
@@ -155,6 +156,7 @@ if __name__=="__main__":
 	parser.add_argument('-par','--pools',nargs='2',type=str,default=[1,1],help="<Optional> MPI tasks as 'nqpools nkpools' (default serial)")
 	parser.add_argument('-lelphc','--lelphc',type=str,default='lelphc',help="<Optional> Path to lelphc executable (default assumed in Path, otherwise prompted)")
 	parser.add_argument('-D','--debug', action="store_true", help="Debug mode")
+	parser.add_argument('-ng','--no_gkkp', action="store_true", help="Do not generate gkkp dbs")
 	args = parser.parse_args()
 
 	phinp  = args.ph_inp_path
@@ -163,6 +165,7 @@ if __name__=="__main__":
 	pools  = args.pools
 	lelphc = args.lelphc
 	debug  = args.debug
+	no_gkkp= args.no_gkkp
 
 	# Check inputs
 	lelphc,ph_path,inp_ph,inp_lelphc,inp_name = checks(phinp,lelphc,bands,kernel,pools)
@@ -174,7 +177,8 @@ if __name__=="__main__":
 	run_elph(lelphc,inp_lelphc,inp_name,pools)
 
 	# load database and convert to yambo format
-	letzelph_to_yambo()
+	if not no_gkkp:
+	    letzelph_to_yambo()
 
 	# clean
 	clean_lelphc(debug,inp_name,ph_path)	

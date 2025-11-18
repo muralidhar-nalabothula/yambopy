@@ -3,6 +3,7 @@
 ##
 import numpy as np
 import os
+import netCDF4 
 from yambopy import YamboLatticeDB,YamboExcitonDB,LetzElphElectronPhononDB,YamboDipolesDB,YamboWFDB
 from yambopy.exciton_phonon.excph_matrix_elements import exciton_phonon_matelem
 from yambopy.bse.excitondipoles import exc_dipoles_pol
