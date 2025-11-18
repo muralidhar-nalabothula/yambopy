@@ -607,33 +607,33 @@ class ConvertRLtoRyCmd(Cmd):
         convert_RL_to_Ry.convert(value,ndb_gops)
 
 class ConvertLELPHCtoYAMBO(Cmd):
-	"""
-	Calculate gauge-invariant electron-phonon matrix elements with LetzElPhC and convert them into Yambo format
+    """
+    Calculate gauge-invariant electron-phonon matrix elements with LetzElPhC and convert them into Yambo format
+    
+    - Usage:
+    
+    >> yambopy l2y -ph phinp -b b1 b2 -par nq nk [--kernel kernel] [--lelphc lelphc] [--no_lelphc_dbs] [--no_gkkp]
+    
+    - Input parameters:
+        -ph                   : path to ph.x input file, e.g. dvscf/ph.in
+        -b                    : initial and final band indices (counting from 1, both values included)
+        -par [OPT]            : MPI pools for q and k (needs mpirun)
+        --kernel [OPT]        : e-ph kernel type, default 'dfpt'
+        --lelphc [OPT]        : path to lelphc executable, default 'lelphc', code will prompt
+        --no_lelphc_dbs [OPT] : will remove LetzElPhC input and outputs
+        --no_gkkp [OPT]       : do not generate the gkkp databases for Yambo/Lumen
 
-	:: Usage:
+    - Prerequisites:
 
-    >> yambopy l2y -ph phinp -b b1 b2 -par nq nk [--kernel kernel] [--lelphc lelphc] [--debug]
-
-    :: Input parameters:
-        -ph           : path to ph.x input file, e.g. dvscf/ph.in
-        -b            : initial and final band indices (counting from 1)
-        -par [OPT]    : MPI pools for q and k (needs mpirun)
-        --kernel [OPT]: e-ph kernel type, default 'dfpt'
-        --lelphc [OPT]: path to lelphc executable (code will prompt)
-        --debug [OPT] : won't remove LetzElPhC input and outputs
-        --no_gkkp [OPT] : do not generate gkkp dbs
-
-	:: Prerequisites:
-
-	* ph.x phonon calculation must be complete, e.g. the phinp folder should contain:
-		- ph.x input file
-		- pw.x (scf) save directory
-		- [prefix].dyn files
-		- _ph* directories
-	* Yambo SAVE directory must be present. We run in the directory where the SAVE is.
-	* LetzElPhC must be installed
-	* mpirun must be linked for parallel runs
-	"""
+    * ph.x phonon calculation must be complete, e.g. the phinp folder should contain:
+        - ph.x input file
+        - pw.x (scf) save directory
+        - [prefix].dyn files
+        - _ph* directories
+    * Yambo SAVE directory must be present. We run in the directory where the SAVE is.
+    * LetzElPhC must be installed
+    * mpirun must be linked for parallel runs
+    """
 	def __init__(self,args):
 
 		#check for args
@@ -647,18 +647,18 @@ class ConvertLELPHCtoYAMBO(Cmd):
 		parser.add_argument('-k','--kernel', type=str, default='dfpt',help="<Optional> Electron-phonon kernel type, e.g. 'dfpt', 'bare', ... (default 'dfpt')")
 		parser.add_argument('-par','--pools',nargs=2,type=str, default=[1,1], help="<Optional> MPI tasks as 'nqpools nkpools' (default serial)")
 		parser.add_argument('-lelphc','--lelphc',type=str,default='lelphc',help="<Optional> Path to lelphc executable (default assumed in Path, otherwise prompted)")
+        parser.add_argument('-nl','--no_lelphc_dbs', action="store_true", help="Remove lelphc databases (False if not given)")
 		parser.add_argument('-ng','--no_gkkp', action="store_true", help="Do not generate gkkp dbs")
-		parser.add_argument('-D','--debug', action="store_true", help="Debug mode")
 
 		args = parser.parse_args(args)
 
-		phinp  = args.ph_inp_path
-		bands  = args.bands
-		kernel = args.kernel
-		pools  = args.pools
-		lelphc = args.lelphc
-		no_gkkp= args.no_gkkp
-		debug  = args.debug
+		phinp         = args.ph_inp_path
+		bands         = args.bands
+		kernel        = args.kernel
+		pools         = args.pools
+		lelphc        = args.lelphc
+		no_lelphc_dbs = args.no_lelphc_dbs
+		no_gkkp       = args.no_gkkp
 
 		# Check inputs
 		lelphc,ph_path,inp_ph,inp_lelphc,inp_name = \
@@ -675,7 +675,7 @@ class ConvertLELPHCtoYAMBO(Cmd):
 		   lelph_interface.letzelph_to_yambo()
 
 		# clean
-		lelph_interface.clean_lelphc(debug,inp_name,ph_path)
+		lelph_interface.clean_lelphc(no_lelphc_dbs,inp_name,ph_path)
 
 class BSEKernelSizeCmd(Cmd):
     """
