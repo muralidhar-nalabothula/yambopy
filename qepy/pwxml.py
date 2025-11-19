@@ -253,11 +253,14 @@ class PwXML():
 
         #get fermi level (it depends on the occupations and spin pol)
         if self.lsda == False:
+            # occupations = 'smearing'
+            if self.occ_type == 'smearing':
            if self.occ_type == 'fixed' and self.lsda == False:
               print('Fermi energy for the case occ: %s and spin polarization false' % self.occ_type)
               self.fermi = float(self.datafile_xml.find("output/band_structure/highestOccupiedLevel").text)*HatoeV
               print('Fermi energy = %lf eV' % self.fermi)
               self.eigen1 = np.array(self.eigen1)*HatoeV - self.fermi
+            # occupations = 'fixed'
            else:
               try: 
                  print('Fermi energy for the case occ: %s and spin polarization false' % self.occ_type)
@@ -272,13 +275,15 @@ class PwXML():
                  self.fermi = self.fermis[1] # set to spin minority energy
 
         if self.lsda == True:
+            # occupations = 'smearing'
             if self.occ_type == 'smearing':
                print('Fermi energy for the case occ: %s and spin polarization True' % self.occ_type)
                self.fermi = float(self.datafile_xml.find("output/band_structure/fermi_energy").text)*HatoeV
                print('Fermi energy = %lf eV' % self.fermi)
                self.eigen1 = np.array(self.eigen1)*HatoeV - self.fermi
+            # occupations = 'fixed'
             else:
-               try:
+               try: 
                   print('Fermi energy for the case occ: %s and spin polarization TRUE' % self.occ_type)
                   self.fermi = float(self.datafile_xml.find("output/band_structure/highestOccupiedLevel").text)*HatoeV
                   print('Fermi energy = %lf eV' % self.fermi)
@@ -289,18 +294,6 @@ class PwXML():
                   self.fermis = [float(fermis[0])*HatoeV,float(fermis[1])*HatoeV]
                   self.fermi = self.fermis[1] # set to spin minority energy
                   self.eigen1 = np.array(self.eigen1)*HatoeV - self.fermi
-               
-#           self.eigen1[:,0:self.nbands_up]  =  np.array(self.eigen1[:,0:self.nbands_up])*HatoeV - self.fermis[0]
-#           self.eigen1[:,self.nbands_up:-1] = np.array(self.eigen1[:,self.nbands_up:-1])*HatoeV - self.fermis[1]
-
-        #get eigenvalues and substract the Fermi Energy
-        # In case of spin-polarized calculations without SOC, pay attention of
-        # the two fermi energies
-
-#        if self.lsda == True:
-#           self.eigen1[:,0:self.nbands_up]  =  np.array(self.eigen1[:,0:self.nbands_up])*HatoeV - self.fermis[0]
-#           self.eigen1[:,self.nbands_up:-1] = np.array(self.eigen1[:,self.nbands_up:-1])*HatoeV - self.fermis[1]
-#        else:
  
         #get Bravais lattice
         self.ibrav = self.datafile_xml.findall("output/atomic_structure")[0].get('bravais_index')
@@ -355,11 +348,10 @@ class PwXML():
 
     def plot_eigen_ax(self,ax,path_kpoints=[],xlim=(),ylim=(),color='r',**kwargs):
         #
-        # Careful with variable path. I am substituting vy path_kpoints
-        # To be done in all the code (and in the tutorials)
-        #
-        # argurments:
+        # Argurments:
         # ls: linestyle
+        # lw: linewidth
+        # y_offset: Rigid shift of the bands
         if path_kpoints:
             if isinstance(path_kpoints,Path):
                 path_kpoints = path_kpoints.get_indexes()
@@ -370,7 +362,8 @@ class PwXML():
 
         ls = kwargs.pop('ls','solid')
         lw = kwargs.pop('lw',1)
-        y_offset = kwargs.pop('y_offset',0.0)
+        y_offset = kwargs.pop('y_offset',0.0)   
+
         #get kpoint_dists 
         kpoints_dists = calculate_distances(self.kpoints)
         ticks, labels = list(zip(*path_kpoints))
@@ -383,45 +376,34 @@ class PwXML():
             ax.axvline(kpoints_dists[t],c='k',lw=2)
         ax.axhline(0,c='k')
 
-        #plot bands
-       
+        # Plot bands
+      
+        # Case: Spin-polarized calculations nspin=2
         if self.lsda:
-           eigen1 = np.array(self.eigen1)
+
+           eigen_plot = np.array(self.eigen1)
 
            for ib in range(self.nbands_up):
-               ax.plot(kpoints_dists,eigen1[:,ib]                + y_offset,'%s-'%color, lw=lw, zorder=1,label='spin-up') # spin-up 
-               ax.plot(kpoints_dists,eigen1[:,ib+self.nbands_up] + y_offset, 'b-', lw=lw, zorder=1,label='spin-down') # spin-down
-               if ib == 91:
-                  ax.plot(kpoints_dists,eigen1[:,ib]-eigen1[:,ib+self.nbands_up],'k-',lw=3)
+               ax.plot(kpoints_dists,eigen_plot[:,ib]                + y_offset, '%s-'%color, lw=lw, zorder=1,label='spin-up')   # spin-up 
+               ax.plot(kpoints_dists,eigen_plot[:,ib+self.nbands_up] + y_offset, 'b-',        lw=lw, zorder=1,label='spin-down') # spin-down
 
            import matplotlib.pyplot as plt
            handles, labels = plt.gca().get_legend_handles_labels()
            by_label = dict(zip(labels, handles))
            plt.legend(by_label.values(), by_label.keys())
 
-        # Case: Non spin polarization
+        # Case: Non spin polarization or with spin-orbit coupling nspin=4
+        
         else:
-           eigen1 = np.array(self.eigen1)
+           eigen_plot = np.array(self.eigen1)
 
            for ib in range(self.nbands):
-               ax.plot(kpoints_dists,eigen1[:,ib] + y_offset, color=color,linestyle=ls , lw=lw, zorder =1)
-        
-        #f=open('eigenvalues-Bi2S3.dat','w')
-
-        #for ib in range(self.nbands):
-        #    for (i,v) in enumerate(eigen1[:,ib]):
-        #        print(kpoints_dists[i],eigen1[i,ib])
-        #       #exit()
-        #        f.write('%lf    %lf  \n' % (kpoints_dists[i],eigen1[i,ib]))
-        #    f.write('\n')
-        #f.close()
+               ax.plot(kpoints_dists,eigen_plot[:,ib] + y_offset, color=color,linestyle=ls , lw=lw, zorder =1)
 
         #plot options
         if xlim: ax.set_xlim(xlim)
         if ylim: ax.set_ylim(ylim)
 
-     
-    #def plot_eigen_spin_ax(self,ax,path_kpoints=[],xlim=(),ylim=(),spin_proj=None):
     def plot_eigen_spin_ax(self,ax,path_kpoints=[],xlim=(),ylim=(),spin_proj=False,spin_folder='.'):
         #
         # Careful with variable path. I am substituting vy path_kpoints
