@@ -11,6 +11,76 @@ from yambopy.symmetries.crystal_symmetries import Crystal_Symmetries
 
 
 def compute_exc_rep(path='.', bse_dir='SAVE', iqpt=1, nstates=-1, degen_tol = 1e-3, degen_rtol=1e-3):
+    """
+    Perform a group–theoretical analysis of excitonic wavefunctions
+    at a given BSE q-point using the crystal symmetries.
+
+    The routine:
+      * Loads lattice, exciton, and electron wave-function databases
+      * Identifies positive-energy excitons and degeneracy groups
+      * Determines the little group of the chosen q-point using spglib
+      * Rotates the exciton wavefunctions under each symmetry
+      * Builds the representation matrices of the little group
+      * Decomposes each excitonic multiplet into irreducible
+        representations of the corresponding point group
+
+    .. note::
+       For finite q ≠ 0, use ``Lkind="full"`` (default in Yambo).
+       For q = 0, ``Lkind="bar"`` is recommended as ``"full"`` may
+       artificially break symmetries depending on the gauge.
+
+    Parameters
+    ----------
+    path : str, optional
+        Working directory containing the ``SAVE`` folder.
+        Default is current directory ``'.'``.
+    bse_dir : str, optional
+        Subdirectory containing the BSE diagonalization database
+        (e.g. ``SAVE`` or ``GW_BSE``). Default ``'SAVE'``.
+    iqpt : int, optional
+        Index of the q-point in the BSE calculation (1-based as in Yambo).
+        Default: ``1``.
+    nstates : int, optional
+        Number of positive-energy exciton states to analyze.
+        If ``-1`` (default) all positive states are used.
+    degen_tol : float, optional
+        Absolute tolerance to detect degeneracies in the exciton energies.
+        Default ``1e-3``.
+    degen_rtol : float, optional
+        Relative tolerance to detect degeneracies in the exciton energies.
+        Default ``1e-3``.
+
+    Outputs
+    -------
+    No return value.
+    Prints to stdout:
+        * Identified little group and symmetry operations
+        * Degenerate groups of excitons (energies and multiplicities)
+        * Irreducible-representation decomposition of each multiplet
+
+    Files Cached (if not present)
+    -----------------------------
+    ``BS_left_ev_Cache.npy`` :
+        Left eigenvectors of the BSE Hamiltonian.
+    ``Dmat_elec_Cache_spglib.npy`` :
+        Electronic representation matrices from spglib symmetry operations.
+
+    Raises
+    ------
+    AssertionError
+        If no positive-energy exciton eigenvalues are found.
+
+    Examples
+    --------
+    >>> compute_exc_rep(path='..', bse_dir='GW_BSE',
+    ...                  iqpt=1, nstates=3, degen_tol=1e-2)
+
+    """
+    ## NM : FIX ME, Add a check for the below comment. 
+    ## Lkind = "full" for q !=0, as Lkind = "bar" should not be used for finite q
+    ## for q = 0, Lking = "bar" is recommaded as "full" will 
+    ## break symmetries (depends on the chosen direction
+
     # Load the lattice database
     lattice = YamboLatticeDB.from_db_file(os.path.join(path, 'SAVE', 'ns.db1'))
     ## Get spglib symmetries to have full symmtries of the crystal even though they are not in yambo base
@@ -90,7 +160,8 @@ def compute_exc_rep(path='.', bse_dir='SAVE', iqpt=1, nstates=-1, degen_tol = 1e
         tau_dot_k = np.exp(1j * 2 * np.pi *
                        np.dot(excdb.car_qpoint, symm.translations[isym]))
         #assert(np.linalg.norm(Sq_minus_q)<10**-5)
-        rot_Akcv = rotate_exc_wf(Ak_r, symm_mat_red, wfdb.kBZ, excQpt, dmats[isym], False, ktree=wfdb.ktree)
+        rot_Akcv = rotate_exc_wf(Ak_r, symm_mat_red, wfdb.kBZ, excQpt,
+                                 dmats[isym], False, ktree=wfdb.ktree)
         rep = np.einsum('m...,n...->mn',Ak_l,rot_Akcv,optimize=True)
 
         #print('Symmetry number : ',isym + 1)
