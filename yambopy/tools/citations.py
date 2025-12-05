@@ -73,7 +73,7 @@ def print_citations():
 
     print("\n=========================================================")
     print("Please cite the following references in case you wish")
-    print("to acknowledge the work done by the contibutors.")
+    print("to acknowledge the work done by the Authors.")
     print("=========================================================")
     for i, ref in enumerate(sorted(_CITATIONS_USED), start=1):
         print(f"{i}) {ref}")

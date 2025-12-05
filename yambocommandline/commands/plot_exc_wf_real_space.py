@@ -31,6 +31,15 @@ def run_plot_exc_wf_real_space(args):
                      help="Fix hole position in reduced units.")
     grp.add_argument("--electron", nargs=3, type=float,
                      help="Fix electron position in reduced units.")
+    #
+    parser.add_argument("--phase", action="store_true",
+                        help="Enable phase plot (default: False). "
+                        "Works only for non-degenerate excitons "
+                        "and nspin=nspinor=1.")
+    #
+    parser.add_argument("--block_size", type=int, default=256,
+                        help="Block size for computation (default: 256). "
+                        "Lower only for very tight memory.")
     args = parser.parse_args(args)
     #
     calc_path = args.path
@@ -57,7 +66,8 @@ def run_plot_exc_wf_real_space(args):
     #
     excdb.real_wf_to_cube(iexe=args.iexe-1,wfdb=wfdb,fixed_postion=fixed_position,
                           supercell=args.supercell,degen_tol=args.degen_tol,
-                          wfcCutoffRy=args.wfc_cutoff,fix_particle=fix_particle)
+                          wfcCutoffRy=args.wfc_cutoff,fix_particle=fix_particle,
+                          phase=args.phase, block_size=args.block_size)
 
 
 

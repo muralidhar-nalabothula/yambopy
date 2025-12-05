@@ -9,7 +9,7 @@ from yambopy.symmetries.point_group_ops import get_pg_info, decompose_rep2irrep
 from yambopy.symmetries.crystal_symmetries import Crystal_Symmetries
 from yambopy.tools.citations import citation
 
-@citation("Symmetries of excitons, M Nalabothula et.al arXiv:2511.21540")
+#@citation("Symmetries of Excitons, M Nalabothula et al arXiv:2511.21540")
 def compute_exc_rep(path='.', bse_dir='SAVE', iqpt=1, nstates=-1, degen_tol = 1e-3, degen_rtol=1e-3, symm_tol=1e-2):
     """
     Perform a group–theoretical analysis of excitonic wavefunctions
