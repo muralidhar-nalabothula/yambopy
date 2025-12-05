@@ -7,10 +7,10 @@ from yambopy.bse.rotate_excitonwf import rotate_exc_wf
 from yambopy.tools.degeneracy_finder import find_degeneracy_evs
 from yambopy.symmetries.point_group_ops import get_pg_info, decompose_rep2irrep
 from yambopy.symmetries.crystal_symmetries import Crystal_Symmetries
+from yambopy.tools.citations import citation
 
-
-
-def compute_exc_rep(path='.', bse_dir='SAVE', iqpt=1, nstates=-1, degen_tol = 1e-3, degen_rtol=1e-3):
+@citation("Symmetries of excitons, M Nalabothula et.al arXiv:2511.21540")
+def compute_exc_rep(path='.', bse_dir='SAVE', iqpt=1, nstates=-1, degen_tol = 1e-3, degen_rtol=1e-3, symm_tol=1e-2):
     """
     Perform a group–theoretical analysis of excitonic wavefunctions
     at a given BSE q-point using the crystal symmetries.
@@ -49,6 +49,9 @@ def compute_exc_rep(path='.', bse_dir='SAVE', iqpt=1, nstates=-1, degen_tol = 1e
     degen_rtol : float, optional
         Relative tolerance to detect degeneracies in the exciton energies.
         Default ``1e-3``.
+    symm_tol : float, optional
+        Tolerance to Symmetry operators.
+        Default ``1e-2``.
 
     Outputs
     -------
@@ -145,7 +148,7 @@ def compute_exc_rep(path='.', bse_dir='SAVE', iqpt=1, nstates=-1, degen_tol = 1e
     #
     ## print some data about the degeneracies
     print('=' * 40)
-    print('Group theory analysis for Q point : ', excQpt)
+    print('Group theory analysis for Q point : (%.6f, %.6f, %.6f)' %(excQpt[0],excQpt[1],excQpt[2]))
     print('*' * 40)
 
     trace_all_real = []
@@ -213,7 +216,7 @@ def compute_exc_rep(path='.', bse_dir='SAVE', iqpt=1, nstates=-1, degen_tol = 1e
     print('-' * 40)
     for i in range(len(trace_req)):
         rep_str_tmp = decompose_rep2irrep(trace_req[i], char_tab, len(little_group),
-                                          class_orders, irreps,tol=1e-2)
+                                          class_orders, irreps,tol=symm_tol)
         print('%.4f        %9d  : ' % (uni_eigs[i], degen_eigs[i]), rep_str_tmp)
     print('*' * 40)
 

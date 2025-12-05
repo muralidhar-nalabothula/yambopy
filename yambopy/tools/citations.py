@@ -3,41 +3,43 @@ import atexit
 # Global citation registry
 _CITATIONS_USED = set()
 
+
 def citation(ref: str):
     """
-    Decorator to track citation usage.
+    Decorator that records a citation reference when the function is executed.
 
-    When the decorated function is executed, the provided citation reference
-    is recorded in an internal registry. Citations are printed once on program
-    exit.
+    This decorator may be applied multiple times to the same function,
+    enabling stacked usage such as::
+
+        @citation("A")
+        @citation("B")
+        def func():
+            ...
+
+    Each reference is recorded when the wrapped function is run. Duplicates
+    across multiple calls are ignored.
 
     Parameters
     ----------
     ref : str
-        The textual reference (e.g., paper title, DOI, URL) to record when the
-        function is used.
+        A reference string identifying the source to cite, such as
+        a publication title, DOI, or URL.
 
     Returns
     -------
     callable
-        Wrapped function that logs its citation on each call.
-
-    Example
-    -------
-    >>> from  yambopy.tools.citation import citation
-
-    >>> @citation("Ref A: Paper on Algorithm A")
-    >>> def function_a():
-
-    >>> #Note that the citation must be same else, duplication can happen.
-
+        A decorated function that appends the citation to the global registry
+        whenever invoked.
     """
     def wrapper(func):
         def inner(*args, **kwargs):
-            _CITATIONS_USED.add(ref)  # record the citation
+            _CITATIONS_USED.add(ref)
             return func(*args, **kwargs)
-        inner.__doc__ = func.__doc__
+
+        # Preserve function identity for debugger, help(), and Sphinx autodoc
         inner.__name__ = func.__name__
+        inner.__doc__ = func.__doc__
+        inner.__qualname__ = func.__qualname__
         return inner
     return wrapper
 
@@ -45,24 +47,37 @@ def citation(ref: str):
 @atexit.register
 def print_citations():
     """
-    Print a summary of citations used during the program execution.
+    Print a numbered citation list on interpreter shutdown.
 
-    If any decorated functions were executed, this function displays a list
-    of unique references in sorted order when Python terminates.
+    If any decorated functions were executed during the program run,
+    this function prints a formatted list of unique citation references
+    in sorted order.
 
     Notes
     -----
-    This function is automatically registered with :mod:`atexit` and
-    should not be called manually in normal operation.
+    This function is automatically registered via :mod:`atexit`.
+    Users should not call this function directly.
+
+    Examples
+    --------
+    Typical output::
+
+        Please cite the following references if you would like to acknowledge
+        the work of the contributors:
+
+        1) Ref A
+        2) Ref B
     """
-    if _CITATIONS_USED:
-        print("\n=========================================================")
-        print("Please cite the following references in case you wish")
-        print("to acknowledge the work done by the contibutors.")
-        print("=========================================================")
-        for i, ref in enumerate(sorted(_CITATIONS_USED), start=1):
-            print(f"{i}) {ref}")
-        print("=========================================================")
+    if not _CITATIONS_USED:
+        return
+
+    print("\n=========================================================")
+    print("Please cite the following references in case you wish")
+    print("to acknowledge the work done by the contibutors.")
+    print("=========================================================")
+    for i, ref in enumerate(sorted(_CITATIONS_USED), start=1):
+        print(f"{i}) {ref}")
+    print("=========================================================")
 
 
 #### test
@@ -72,6 +87,7 @@ if __name__ == "__main__":
         return 1 + 1
 
     @citation("Ref B: Intersteller by C. Nolan")
+    @citation("Ref C: Oppenheimer by C. Nolan")
     def Intersteller():
         return 1 + 1
     # call functcion
