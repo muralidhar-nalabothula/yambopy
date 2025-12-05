@@ -425,7 +425,7 @@ class YamboWFDB:
 
         # Add phase due to fractional translation
         Rkvec = sym_red.T @ kvec
-        tau_frac = self.ydb.lat.T @ frac_vec
+        tau_frac = np.linalg.inv(self.ydb.lat.T) @ frac_vec
         kphase = np.exp(-1j * 2 * np.pi * np.dot(Rkvec, tau_frac))
         gphase = kphase * np.exp(-1j * 2 * np.pi * (gvec_rot @ tau_frac))
         wfc_rot *= gphase[None, None, None, :]
