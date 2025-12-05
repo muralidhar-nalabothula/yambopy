@@ -58,10 +58,10 @@ def compute_exc_rep(path='.', bse_dir='SAVE', iqpt=1, nstates=-1, degen_tol = 1e
         * Degenerate groups of excitons (energies and multiplicities)
         * Irreducible-representation decomposition of each multiplet
 
-    Files Cached (if not present)
+    Files Cached in BSE directory (if not present)
     -----------------------------
     ``BS_left_ev_Cache.npy`` :
-        Left eigenvectors of the BSE Hamiltonian.
+        Left eigenvectors of the BSE Hamiltonian in case of non-TDA.
     ``Dmat_elec_Cache_spglib.npy`` :
         Electronic representation matrices from spglib symmetry operations.
 
@@ -97,11 +97,14 @@ def compute_exc_rep(path='.', bse_dir='SAVE', iqpt=1, nstates=-1, degen_tol = 1e
     Akcv = excdb.get_Akcv()
     Akcv_left = Akcv
     if Akcv.shape[1] == 2:
-        if os.path.exists('BS_left_ev_Cache.npy'):
-            Akcv_left = np.load('BS_left_ev_Cache.npy')
+        left_ev_path = os.path.join(bse_dir,f'BS_left_ev_Cache_qpt_{iqpt}.npy')
+        if os.path.exists(left_ev_path):
+            print("Found left eigenvectors, loading ...")
+            Akcv_left = np.load(left_ev_path)
         else:
+            print("Computing left ev ...")
             Akcv_left = np.linalg.inv(Akcv.reshape(len(Akcv),-1)).conj().T.reshape(Akcv.shape)
-            np.save('BS_left_ev_Cache',Akcv_left)
+            np.save(left_ev_path,Akcv_left)
     #
     eigs = excdb.eigenvalues.real
     sort_idx = np.argsort(eigs)
@@ -129,12 +132,16 @@ def compute_exc_rep(path='.', bse_dir='SAVE', iqpt=1, nstates=-1, degen_tol = 1e
 
     lat_vec = lattice.lat
     lat_vec_inv = np.linalg.inv(lat_vec)
-    if os.path.exists('Dmat_elec_Cache_spglib.npy'):
-        dmats = np.load('Dmat_elec_Cache_spglib.npy')
+    #
+    Dmat_path = os.path.join(bse_dir, 'Dmat_elec_Cache_spglib.npy')
+    if os.path.exists(Dmat_path):
+        print("Dmats found. Loading ....")
+        dmats = np.load(Dmat_path)
     else:
+        print("Dmats not found. Computing ....")
         dmats = wfdb.Dmat(symm_mat=symm.rotations,
                           frac_vec=symm.translations, time_rev=False)
-        np.save('Dmat_elec_Cache_spglib',dmats)
+        np.save(Dmat_path,dmats)
     #
     ## print some data about the degeneracies
     print('=' * 40)
