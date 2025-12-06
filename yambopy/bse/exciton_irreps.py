@@ -167,8 +167,7 @@ def compute_exc_rep(path='.', bse_dir='SAVE', iqpt=1, nstates=-1, degen_tol = 1e
         symm_mat = symm.rotations[isym]
         symm_mat_red = lat_vec@symm_mat@lat_vec_inv
         #isym = 2
-        Sq_minus_q = np.einsum('ij,j->i', symm_mat_red,
-                           excQpt) - excQpt
+        Sq_minus_q = np.einsum('ij,j->i', symm_mat_red, excQpt) - excQpt
         #print(Sq_minus_q)
         #diff = Sq_minus_q.copy()
         Sq_minus_q = Sq_minus_q - np.rint(Sq_minus_q)
@@ -183,7 +182,12 @@ def compute_exc_rep(path='.', bse_dir='SAVE', iqpt=1, nstates=-1, degen_tol = 1e
         rep = tau_dot_k*np.einsum('m...,n...->mn',Ak_l,rot_Akcv,optimize=True)
         # NM : In case of non-trivial projective irrep, we cannot do this,
         # so this fails for boundary Q points, for example (0,0,0.5) in bulk hBN.
-        # But there are very very few.
+        ## Check if this is projective present and exit as it is yet not implemented.
+        G0_tmp = np.einsum('ji,j->i', symm_mat, excdb.car_qpoint) - excdb.car_qpoint
+        G0_tau_tmp = G0_tmp.dot(symm.translations[isym])
+        G0_tau_tmp = G0_tau_tmp-np.rint(G0_tau_tmp)
+        if np.abs(G0_tau_tmp) > 1e-3:
+            exit("Error : Projective representations are not implemented")
         #print('Symmetry number : ',isym + 1)
         ## print characters
         irrep_sum = 0
