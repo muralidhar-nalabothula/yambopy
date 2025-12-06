@@ -60,13 +60,7 @@ def print_citations():
 
     Examples
     --------
-    Typical output::
-
-        Please cite the following references if you would like to acknowledge
-        the work of the contributors:
-
-        1) Ref A
-        2) Ref B
+    Typical output:: Run this script.
     """
     if not _CITATIONS_USED:
         return

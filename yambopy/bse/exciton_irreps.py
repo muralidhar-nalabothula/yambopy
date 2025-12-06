@@ -68,10 +68,14 @@ def compute_exc_rep(path='.', bse_dir='SAVE', iqpt=1, nstates=-1, degen_tol = 1e
     ``Dmat_elec_Cache_spglib.npy`` :
         Electronic representation matrices from spglib symmetry operations.
 
+    Note :
+    Currently projective representations are not implemented and left for future.
+
     Raises
     ------
     AssertionError
-        If no positive-energy exciton eigenvalues are found.
+        1) If no positive-energy exciton eigenvalues are found.
+        2) Projective representations for non-symmorphic symmetires at boundary Q points
 
     Examples
     --------
