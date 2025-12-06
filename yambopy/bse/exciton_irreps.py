@@ -92,6 +92,10 @@ def compute_exc_rep(path='.', bse_dir='SAVE', iqpt=1, nstates=-1, degen_tol = 1e
     lattice = YamboLatticeDB.from_db_file(os.path.join(path, 'SAVE', 'ns.db1'))
     ## Get spglib symmetries to have full symmtries of the crystal even though they are not in yambo base
     symm = Crystal_Symmetries(lattice,tol=1e-4)
+    # Write basic symmetry information to file
+    symm_info_file_name = "Symmetry_info_excitons.txt"
+    print("Writing Basic symmetry information to file : ",symm_info_file_name)
+    symm.write_symmetry_info_to_file(symm_info_file_name)
     #
     filename = 'ndb.BS_diago_Q%d' % (iqpt)
     excdb = YamboExcitonDB.from_db_file(lattice, filename=filename,
@@ -176,8 +180,10 @@ def compute_exc_rep(path='.', bse_dir='SAVE', iqpt=1, nstates=-1, degen_tol = 1e
         #assert(np.linalg.norm(Sq_minus_q)<10**-5)
         rot_Akcv = rotate_exc_wf(Ak_r, symm_mat_red, wfdb.kBZ, excQpt,
                                  dmats[isym], False, ktree=wfdb.ktree)
-        rep = np.einsum('m...,n...->mn',Ak_l,rot_Akcv,optimize=True)
-
+        rep = tau_dot_k*np.einsum('m...,n...->mn',Ak_l,rot_Akcv,optimize=True)
+        # NM : In case of non-trivial projective irrep, we cannot do this,
+        # so this fails for boundary Q points, for example (0,0,0.5) in bulk hBN.
+        # But there are very very few.
         #print('Symmetry number : ',isym + 1)
         ## print characters
         irrep_sum = 0
