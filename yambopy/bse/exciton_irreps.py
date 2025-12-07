@@ -87,7 +87,9 @@ def compute_exc_rep(path='.', bse_dir='SAVE', iqpt=1, nstates=-1, degen_tol = 1e
     ## Lkind = "full" for q !=0, as Lkind = "bar" should not be used for finite q
     ## for q = 0, Lking = "bar" is recommaded as "full" will 
     ## break symmetries (depends on the chosen direction
-
+    if nstates == 0 :
+        print("Warning : Number of states set to 0. so returning without any output.")
+        return None
     # Load the lattice database
     lattice = YamboLatticeDB.from_db_file(os.path.join(path, 'SAVE', 'ns.db1'))
     ## Get spglib symmetries to have full symmtries of the crystal even though they are not in yambo base
@@ -123,6 +125,15 @@ def compute_exc_rep(path='.', bse_dir='SAVE', iqpt=1, nstates=-1, degen_tol = 1e
     pos_idx = np.where(eigs > 0)
     assert len(pos_idx) >0, "No postive eigenvalues found"
     pos_idx = pos_idx[0][0]
+    #
+    n_pos = len(eigs[pos_idx:])
+    nstates = min(max(nstates, 0), n_pos)
+    if nstates < n_pos:
+        last = eigs[pos_idx + nstates - 1]
+        tol = degen_tol + degen_rtol * abs(last)
+        extra = np.sum(np.abs(eigs[pos_idx+nstates:pos_idx+n_pos] - last) < tol)
+        if extra: print("Warning: More Excitonic states included due to degeneracies.")
+        nstates += extra
     #
     Ak_r = Akcv[sort_idx][pos_idx:pos_idx+nstates]
     Ak_l = Akcv_left[sort_idx][pos_idx:pos_idx+nstates].conj()
