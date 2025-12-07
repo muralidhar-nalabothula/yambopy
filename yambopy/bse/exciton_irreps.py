@@ -99,10 +99,15 @@ def compute_exc_rep(path='.', bse_dir='SAVE', iqpt=1, nstates=-1, degen_tol = 1e
     print("Writing Basic symmetry information to file : ",symm_info_file_name)
     symm.write_symmetry_info_to_file(symm_info_file_name)
     #
+    # NM : I am assuming that we can have atmost 100 accidental degeneracies (only for TDA).
+    # This is a fine if we are not in continum. In that case, use should increase more states.
+    nstates_read = -1
+    if nstates >0: nstates_read = nstates + 100
+    #
     filename = 'ndb.BS_diago_Q%d' % (iqpt)
     excdb = YamboExcitonDB.from_db_file(lattice, filename=filename,
                                              folder=os.path.join(path, bse_dir),
-                                             Load_WF=True, neigs=-1)
+                                             Load_WF=True, neigs=nstates_read)
     # Load the wavefunction database
     wfdb = YamboWFDB(path=path, latdb=lattice,
                       bands_range=[np.min(excdb.table[:, 1]) - 1,

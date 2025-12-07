@@ -106,9 +106,17 @@ class YamboExcitonDB(object):
         with Dataset(path_filename) as database:
             #energies
             eig =  database.variables['BS_Energies'][...].data*ha2ev
+            is_coupling = database.variables['COUPLING'][...].data
             eigenvalues = eig[:,0]+eig[:,1]*I
             neig_full = len(eigenvalues)
-            if neigs < 0 or neigs > neig_full: neigs = neig_full
+            ## in the case of Coupling, we override partial loading. This is because, the energies are 
+            ## not ordered, so it really does not make sense.
+            if is_coupling and neigs >0:
+                print("Warning : In the coupling case, all the states are read, overriding user input")
+            #
+            if neigs < 0 or neigs > neig_full or is_coupling:
+                neigs = neig_full
+            #
             eigenvalues = eigenvalues[:neigs]
 
             if 'BS_left_Residuals' in list(database.variables.keys()):

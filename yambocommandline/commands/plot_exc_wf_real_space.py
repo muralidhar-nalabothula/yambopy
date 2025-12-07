@@ -13,9 +13,9 @@ def run_plot_exc_wf_real_space(args):
                                      "exciton wavefunction in Gaussian .cube file.")
 
     parser.add_argument("--path", type=str, default=".",
-                        help="Calculation directory (default: Current working directory.)")
-    parser.add_argument("-J","--bse_dir", type=str, default="GW_BSE", metavar="DIR",
-                        help="BSE results folder (default: GW_BSE)")
+                        help="Calculation directory (default: Current working directory '.')")
+    parser.add_argument("-J","--bse_dir", type=str, default="SAVE", metavar="DIR",
+                        help="BSE JOB directory (default: SAVE)")
     parser.add_argument("--iqpt", type=int, default=1,help="Q-point index (default: 1)")
     parser.add_argument("--iexe", type=int, required=True,help="Exciton index to plot.")
     # --iexe and --iqpt are not python indexing. i,e 1st item starts from 1.
@@ -40,6 +40,14 @@ def run_plot_exc_wf_real_space(args):
     parser.add_argument("--block_size", type=int, default=256,
                         help="Block size for computation (default: 256). "
                         "Lower only for very tight memory.")
+    #
+    parser.add_argument("--neig_load", type=int, default=100,
+                        help="Number of extra eigevectors to load in memory (default: 100). "
+                        "Only meaningful for TDA (non TDA, it is ignored and all are read). "
+                        "Default 100 is fine and in most cases can be reduced, but if you are in deep "
+                        "continum, we might have more accidental degenerates, in that case "
+                        "we need to load more eigenvectors.")
+    #
     args = parser.parse_args(args)
     #
     calc_path = args.path
@@ -58,8 +66,10 @@ def run_plot_exc_wf_real_space(args):
     lattice = YamboLatticeDB.from_db_file(nsfile)
     #
     filename = f"ndb.BS_diago_Q{iqpt}"
+    # NM : In the case of TDA, we donot want to load all the eigenvectors. 
     excdb = YamboExcitonDB.from_db_file(lattice, filename=filename,
-                                        folder=os.path.join(calc_path, BSE_dir), neigs=-1)
+                                        folder=os.path.join(calc_path, BSE_dir),
+                                        neigs=args.iexe + args.neig_load)
     #
     wfdb = YamboWFDB(path=calc_path,latdb=lattice,
                      bands_range=[np.min(excdb.table[:, 1]) - 1,np.max(excdb.table[:, 2])])
