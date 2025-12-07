@@ -18,4 +18,4 @@ def run_exc_sort(args):
     excdb = YamboExcitonDB.from_db_file(lattice, filename=filename,
                                         folder=os.path.join(args.path, args.jobdir),
                                         Load_WF=False, neigs=-1)
-    excdb.write_sorted(prefix=f"o-{args.jobdir}.exc_qpt{args.iqpt}")
+    excdb.write_sorted(prefix=f"o-{args.jobdir}.exc_qpt{args.iqpt}_sorted")
