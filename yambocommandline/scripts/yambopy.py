@@ -718,6 +718,13 @@ class BSEKernelSizeCmd(Cmd):
 
         get_BSE_kernel_size.get_BSE_kernel_size(nk,nv,nc,np,ncpl)
 
+class Exc_sortCmd(Cmd):
+    """
+    Script to sort excitonic states according to energies and intensities.
+    """
+    def __init__(self,args):
+        from yambocommandline.commands import exc_sort
+        exc_sort.run_exc_sort(args)
 
 class Exc_wf_plotCmd(Cmd):
     """
@@ -760,6 +767,7 @@ class YambopyCmd(Cmd):
                  'test':         TestCmd,
                  'exc-irrep':    Exc_irrepCmd,
                  'exc-wf':       Exc_wf_plotCmd,
+                 'exc-sort':     Exc_sortCmd,
                  }
 
     def __init__(self,*args):

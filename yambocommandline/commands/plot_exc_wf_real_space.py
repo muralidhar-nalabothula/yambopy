@@ -14,7 +14,7 @@ def run_plot_exc_wf_real_space(args):
 
     parser.add_argument("--path", type=str, default=".",
                         help="Calculation directory (default: Current working directory '.')")
-    parser.add_argument("-J","--bse_dir", type=str, default="SAVE", metavar="DIR",
+    parser.add_argument("-J","--jobdir", type=str, default="SAVE", metavar="DIR",
                         help="BSE JOB directory (default: SAVE)")
     parser.add_argument("--iqpt", type=int, default=1,help="Q-point index (default: 1)")
     parser.add_argument("--iexe", type=int, required=True,help="Exciton index to plot.")
@@ -51,7 +51,7 @@ def run_plot_exc_wf_real_space(args):
     args = parser.parse_args(args)
     #
     calc_path = args.path
-    BSE_dir = args.bse_dir
+    BSE_dir = args.jobdir
     iqpt = args.iqpt
     #
     if args.hole:

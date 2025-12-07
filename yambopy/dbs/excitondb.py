@@ -243,17 +243,21 @@ class YamboExcitonDB(object):
         intensities = self.get_intensities()
 
         #get sorted energies
-        sort_e, sort_i = self.get_sorted()     
+        sort_e, sort_i = self.get_sorted()
 
         #write excitons sorted by energy
-        with open('%s_E.dat'%prefix, 'w') as f:
-            for e,n in sort_e:
-                f.write("%3d %12.8lf %12.8e\n"%(n+1,e,intensities[n])) 
+        se_arr = np.array(sort_e)
+        n_idx = se_arr[:, 1].astype(int)
+        data_e = np.column_stack((se_arr[:, 0], intensities[n_idx], n_idx + 1))
+        np.savetxt('%s_E.dat'%prefix, data_e, fmt='%16.8f %20.8e %10d',
+                   header='    E [ev]             Strength           Index')
 
         #write excitons sorted by intensities
-        with open('%s_I.dat'%prefix,'w') as f:
-            for i,n in sort_i:
-                f.write("%3d %12.8lf %12.8e\n"%(n+1,eig[n],i)) 
+        si_arr = np.array(sort_i)
+        n_idx = si_arr[:, 1].astype(int)
+        data_i = np.column_stack((eig[n_idx], np.abs(si_arr[:, 0]), n_idx + 1))
+        np.savetxt('%s_I.dat'%prefix, data_i, fmt='%16.8f %20.8e %10d',
+                   header='    E [ev]             Strength           Index')
 
     def get_Akcv(self):
         """
@@ -386,7 +390,7 @@ class YamboExcitonDB(object):
         """
         get the intensities of the excitons
         """
-        intensities = self.l_residual*self.r_residual
+        intensities = np.abs(self.l_residual*self.r_residual)
         intensities /= np.max(intensities)
         return intensities
 
