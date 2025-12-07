@@ -132,7 +132,7 @@ def compute_exc_rep(path='.', bse_dir='SAVE', iqpt=1, nstates=-1, degen_tol = 1e
         last = eigs[pos_idx + nstates - 1]
         tol = degen_tol + degen_rtol * abs(last)
         extra = np.sum(np.abs(eigs[pos_idx+nstates:pos_idx+n_pos] - last) < tol)
-        if extra: print("Warning: More Excitonic states included due to degeneracies.")
+        if extra: print("Warning: More excitonic states included due to degeneracies.")
         nstates += extra
     #
     Ak_r = Akcv[sort_idx][pos_idx:pos_idx+nstates]
@@ -193,7 +193,7 @@ def compute_exc_rep(path='.', bse_dir='SAVE', iqpt=1, nstates=-1, degen_tol = 1e
         rep = tau_dot_k*np.einsum('m...,n...->mn',Ak_l,rot_Akcv,optimize=True)
         # NM : In case of non-trivial projective irrep, we cannot do this,
         # so this fails for boundary Q points, for example (0,0,0.5) in bulk hBN.
-        ## Check if this is projective present and exit as it is yet not implemented.
+        ## Check if this is projective rep and exit as it is yet not implemented.
         G0_tmp = np.einsum('ji,j->i', symm_mat, excdb.car_qpoint) - excdb.car_qpoint
         G0_tau_tmp = G0_tmp.dot(symm.translations[isym])
         G0_tau_tmp = G0_tau_tmp-np.rint(G0_tau_tmp)
