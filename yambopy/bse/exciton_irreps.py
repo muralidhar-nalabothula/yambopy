@@ -132,7 +132,10 @@ def compute_exc_rep(path='.', bse_dir='SAVE', iqpt=1, nstates=-1, degen_tol = 1e
     pos_idx = pos_idx[0][0]
     #
     n_pos = len(eigs[pos_idx:])
-    nstates = min(max(nstates, 0), n_pos)
+    #
+    if nstates < 0: nstates = n_pos
+    else : nstates = min(nstates, n_pos)
+    #
     if nstates < n_pos:
         last = eigs[pos_idx + nstates - 1]
         tol = degen_tol + degen_rtol * abs(last)
