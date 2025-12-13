@@ -1,3 +1,8 @@
+# Copyright (c) 2025, University of Luxembourg 
+# All rights reserved.
+#
+# Authors: MN
+#
 from yambopy.bse.exciton_irreps import compute_exc_rep
 import argparse
 #

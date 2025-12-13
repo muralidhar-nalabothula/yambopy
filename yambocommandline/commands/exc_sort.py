@@ -1,3 +1,8 @@
+# Copyright (c) 2025, University of Luxembourg 
+# All rights reserved.
+#
+# Authors: MN
+#
 import argparse
 import os
 from yambopy.dbs.excitondb import YamboExcitonDB
