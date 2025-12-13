@@ -1,3 +1,8 @@
+# Copyright (c) 2025, University of Luxembourg 
+# All rights reserved.
+#
+# Authors: MN
+#
 import atexit
 
 # Global citation registry

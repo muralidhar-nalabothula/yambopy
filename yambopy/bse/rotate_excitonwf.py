@@ -1,3 +1,7 @@
+# Copyright (c) 2025, University of Luxembourg 
+# All rights reserved.
+#
+# Authors: MN
 import numpy as np
 from yambopy.kpoints import build_ktree, find_kpt
 from yambopy.tools.function_profiler import func_profile 

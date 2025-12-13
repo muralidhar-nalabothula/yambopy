@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Muralidhar Nalabothula
+# Copyright (c) 2025, University of Luxembourg 
 # All rights reserved.
 #
 # Author: MN

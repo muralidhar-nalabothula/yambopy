@@ -1,3 +1,8 @@
+# Copyright (c) 2025, University of Luxembourg 
+# All rights reserved.
+#
+# Authors: MN
+#
 import os
 import numpy as np
 from yambopy.dbs.excitondb import YamboExcitonDB
