@@ -7,6 +7,7 @@ import netCDF4
 from yambopy import YamboLatticeDB,YamboExcitonDB,LetzElphElectronPhononDB,YamboDipolesDB,YamboWFDB
 from yambopy.exciton_phonon.excph_matrix_elements import exciton_phonon_matelem
 from yambopy.bse.excitondipoles import exc_dipoles_pol
+from yambopy.kpoints import find_kpt
 
 def exc_ph_get_inputs(lat_path,elph_path,bse_path1,mode='PL',bse_path2=None,wf_path=None,dipoles_path=None,nexc_in='all',nexc_out='all',bands_range=[],phonons_range=[],overwrite=False,dmat_file='Dmats.npy',exph_file='Ex-ph.npy',dip_file='exc_dipoles.npy'):
     """
@@ -99,6 +100,11 @@ def exc_ph_get_inputs(lat_path,elph_path,bse_path1,mode='PL',bse_path2=None,wf_p
                                              dmat_mode=dmat_mode,exph_file=exph_file)
     excph_couplings = excph_couplings[:,phonons_range[0]:phonons_range[1],:nexc_in,:nexc_out]
     
+    # NM : EXciton energies here are (nQ, nexc), but we need (nq,nexc), so get enegies in (nq,nexc)
+    qpoints_ph = elph.qpoints
+    idx_qpts = find_kpt(wfcs.ktree,qpoints_ph)
+    exc_energies = exc_energies[idx_qpts].copy()
+
     if mode=='PL':
         # Calculate excitonic dipoles (not projected along field)
         exc_dipoles = exc_dipoles_pol(lat_path,dipoles_path=dipoles_path,bse_path=bse_path2,overwrite=overwrite,dip_file=dip_file)
