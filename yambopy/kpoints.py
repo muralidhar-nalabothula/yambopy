@@ -226,7 +226,7 @@ def regular_grid(nk1,nk2,nk3):
     return xkg.T # shape [nk,3]
 
 
-def find_kpatch(kpts, kcentre, lat_vecs, nshells=1, tol=1e-5, G_range=1):
+def find_kpatch(kpts, kcentre, lat_vecs, nshells=1, tol=1e-5, G_range=3):
     """
     Find k-points belonging to the first `nshells` neighbor shells
     around kcentre, including degeneracies and rigorous BZ mapping.
@@ -244,7 +244,7 @@ def find_kpatch(kpts, kcentre, lat_vecs, nshells=1, tol=1e-5, G_range=1):
     tol : float
         tolerance for degeneracy
     G_range : int
-        Range of surrounding reciprocal cells to check. G_range=1 checks 27 cells,
+        Range of surrounding reciprocal cells to check. G_range=2 checks 343 cells,
         which is sufficient when combined with initial rounding.
 
     Returns
